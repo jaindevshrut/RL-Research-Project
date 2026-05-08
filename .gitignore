@@ -1,0 +1,25 @@
+# Python build cruft
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# LaTeX intermediates (keep the .tex source and the compiled .pdf)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Submission artefacts (regenerable from paper/)
+Overleaf-paper.zip

@@ -1,0 +1,17 @@
+{
+  "run_name": "qrdqn_8dim",
+  "method": "QR-DQN (Dabney et al. 2018)",
+  "n_quantiles": 51,
+  "dims": [
+    "suddenness",
+    "goal_relevance",
+    "conduciveness",
+    "power",
+    "predictability",
+    "anticipation",
+    "urgency",
+    "familiarity"
+  ],
+  "frames": 60000,
+  "duration_sec": 866.1401407718658
+}

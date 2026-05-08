@@ -1,0 +1,15 @@
+{
+  "run_name": "extended_8dim",
+  "dims": [
+    "suddenness",
+    "goal_relevance",
+    "conduciveness",
+    "power",
+    "predictability",
+    "anticipation",
+    "urgency",
+    "familiarity"
+  ],
+  "frames": 60000,
+  "duration_sec": 1781.8038382530212
+}

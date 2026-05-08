@@ -1,0 +1,75 @@
+{
+  "paper": {
+    "Paper Exp 1 (free)": {
+      "r2": 0.65,
+      "rmse": 0.09
+    },
+    "Paper Exp 2 (forced)": {
+      "r2": 0.92,
+      "rmse": 0.09
+    },
+    "Paper Exp 3 (free)": {
+      "r2": 0.29,
+      "rmse": 0.04
+    },
+    "Paper Exp 3 (forced)": {
+      "r2": 0.62,
+      "rmse": 0.16
+    }
+  },
+  "ours": [
+    {
+      "run": "baseline_4dim",
+      "n_dims": 4,
+      "dims": [
+        "suddenness",
+        "goal_relevance",
+        "conduciveness",
+        "power"
+      ],
+      "test_accuracy": 0.648068669527897,
+      "rmse": 0.34469775437019345,
+      "r2": 0.3663117767047793,
+      "n_test": 466,
+      "n_classes": 4
+    },
+    {
+      "run": "extended_8dim",
+      "n_dims": 8,
+      "dims": [
+        "suddenness",
+        "goal_relevance",
+        "conduciveness",
+        "power",
+        "predictability",
+        "anticipation",
+        "urgency",
+        "familiarity"
+      ],
+      "test_accuracy": 0.9034334763948498,
+      "rmse": 0.21359920534643806,
+      "r2": 0.7566686905353084,
+      "n_test": 466,
+      "n_classes": 4
+    },
+    {
+      "run": "qrdqn_8dim",
+      "n_dims": 8,
+      "dims": [
+        "suddenness",
+        "goal_relevance",
+        "conduciveness",
+        "power",
+        "predictability",
+        "anticipation",
+        "urgency",
+        "familiarity"
+      ],
+      "test_accuracy": 0.8675373134328358,
+      "rmse": 0.23942360607313268,
+      "r2": 0.6942737965596668,
+      "n_test": 536,
+      "n_classes": 4
+    }
+  ]
+}

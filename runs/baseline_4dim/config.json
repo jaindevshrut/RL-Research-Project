@@ -1,0 +1,11 @@
+{
+  "run_name": "baseline_4dim",
+  "dims": [
+    "suddenness",
+    "goal_relevance",
+    "conduciveness",
+    "power"
+  ],
+  "frames": 60000,
+  "duration_sec": 1792.9939861297607
+}

@@ -1,0 +1,76 @@
+[extended_8dim] dims = ['suddenness', 'goal_relevance', 'conduciveness', 'power', 'predictability', 'anticipation', 'urgency', 'familiarity']
+[extended_8dim] frames = 60000
+frame=  1000 eps=0.95 ep=42 R20=-1.217 loss=0.017
+frame=  2000 eps=0.91 ep=77 R20=-1.139 loss=0.000
+frame=  3000 eps=0.86 ep=117 R20=-1.239 loss=0.000
+frame=  4000 eps=0.81 ep=160 R20=-0.951 loss=0.000
+frame=  5000 eps=0.76 ep=201 R20=-1.161 loss=0.001
+  [eval] frame=5000 mean_return=-0.800
+frame=  6000 eps=0.72 ep=237 R20=-1.054 loss=0.003
+frame=  7000 eps=0.67 ep=272 R20=-0.869 loss=0.000
+frame=  8000 eps=0.62 ep=299 R20=-0.597 loss=0.001
+frame=  9000 eps=0.57 ep=343 R20=+0.593 loss=0.000
+frame= 10000 eps=0.53 ep=392 R20=+0.028 loss=0.000
+  [eval] frame=10000 mean_return=-0.800
+frame= 11000 eps=0.48 ep=447 R20=+0.189 loss=0.003
+frame= 12000 eps=0.43 ep=511 R20=+0.224 loss=0.000
+frame= 13000 eps=0.38 ep=568 R20=-0.069 loss=0.002
+frame= 14000 eps=0.34 ep=625 R20=+0.555 loss=0.002
+frame= 15000 eps=0.29 ep=691 R20=+0.906 loss=0.000
+  [eval] frame=15000 mean_return=-0.800
+frame= 16000 eps=0.24 ep=764 R20=+0.769 loss=0.004
+frame= 17000 eps=0.19 ep=851 R20=+0.784 loss=0.001
+frame= 18000 eps=0.15 ep=931 R20=+0.935 loss=0.001
+frame= 19000 eps=0.10 ep=992 R20=+1.090 loss=0.001
+frame= 20000 eps=0.05 ep=1080 R20=+1.071 loss=0.000
+  [eval] frame=20000 mean_return=-0.800
+frame= 21000 eps=0.05 ep=1175 R20=+1.004 loss=0.000
+frame= 22000 eps=0.05 ep=1277 R20=+0.904 loss=0.003
+frame= 23000 eps=0.05 ep=1370 R20=+0.974 loss=0.001
+frame= 24000 eps=0.05 ep=1459 R20=+0.888 loss=0.000
+frame= 25000 eps=0.05 ep=1537 R20=+1.101 loss=0.000
+  [eval] frame=25000 mean_return=-0.800
+frame= 26000 eps=0.05 ep=1621 R20=+0.878 loss=0.000
+frame= 27000 eps=0.05 ep=1725 R20=+1.102 loss=0.001
+frame= 28000 eps=0.05 ep=1828 R20=+1.103 loss=0.000
+frame= 29000 eps=0.05 ep=1932 R20=+1.104 loss=0.002
+frame= 30000 eps=0.05 ep=2038 R20=+1.104 loss=0.001
+  [eval] frame=30000 mean_return=-0.800
+frame= 31000 eps=0.05 ep=2142 R20=+1.093 loss=0.001
+frame= 32000 eps=0.05 ep=2245 R20=+1.099 loss=0.000
+frame= 33000 eps=0.05 ep=2345 R20=+1.107 loss=0.001
+frame= 34000 eps=0.05 ep=2442 R20=+1.095 loss=0.001
+frame= 35000 eps=0.05 ep=2542 R20=+1.094 loss=0.000
+  [eval] frame=35000 mean_return=-0.800
+frame= 36000 eps=0.05 ep=2647 R20=+1.003 loss=0.000
+frame= 37000 eps=0.05 ep=2740 R20=+0.880 loss=0.001
+frame= 38000 eps=0.05 ep=2841 R20=+1.102 loss=0.001
+frame= 39000 eps=0.05 ep=2947 R20=+1.101 loss=0.001
+frame= 40000 eps=0.05 ep=3052 R20=+0.912 loss=0.001
+  [eval] frame=40000 mean_return=-0.800
+frame= 41000 eps=0.05 ep=3153 R20=+0.988 loss=0.000
+frame= 42000 eps=0.05 ep=3255 R20=+1.002 loss=0.000
+frame= 43000 eps=0.05 ep=3357 R20=+1.096 loss=0.001
+frame= 44000 eps=0.05 ep=3438 R20=+1.103 loss=0.000
+frame= 45000 eps=0.05 ep=3530 R20=+0.773 loss=0.000
+  [eval] frame=45000 mean_return=-0.800
+frame= 46000 eps=0.05 ep=3627 R20=+0.992 loss=0.001
+frame= 47000 eps=0.05 ep=3732 R20=+1.100 loss=0.001
+frame= 48000 eps=0.05 ep=3834 R20=+1.095 loss=0.000
+frame= 49000 eps=0.05 ep=3939 R20=+1.105 loss=0.000
+frame= 50000 eps=0.05 ep=4018 R20=+0.916 loss=0.001
+  [eval] frame=50000 mean_return=-1.010
+frame= 51000 eps=0.05 ep=4120 R20=+1.100 loss=0.001
+frame= 52000 eps=0.05 ep=4212 R20=+1.080 loss=0.000
+frame= 53000 eps=0.05 ep=4311 R20=+0.590 loss=0.000
+frame= 54000 eps=0.05 ep=4415 R20=+1.101 loss=0.000
+frame= 55000 eps=0.05 ep=4519 R20=+1.105 loss=0.001
+  [eval] frame=55000 mean_return=-0.800
+frame= 56000 eps=0.05 ep=4622 R20=+1.103 loss=0.000
+frame= 57000 eps=0.05 ep=4696 R20=+0.902 loss=0.000
+frame= 58000 eps=0.05 ep=4800 R20=+1.103 loss=0.000
+frame= 59000 eps=0.05 ep=4900 R20=+1.097 loss=0.000
+frame= 60000 eps=0.05 ep=5003 R20=+1.005 loss=0.000
+  [eval] frame=60000 mean_return=-0.800
+done in 1781.8s — episodes=5003
+saved to runs\extended_8dim

@@ -1,0 +1,60 @@
+AUTHOR CONTRIBUTIONS
+====================
+
+Project   : Modeling Cognitive-Affective Processes With Appraisal and
+            Reinforcement Learning
+Course    : B.Tech. Projects, SVNIT
+Year      : 3rd
+Team      : Dev Shrut Jain (U23AI068), Sweta Rana (U23AI065),
+            Krish Rathod (U23AI049)
+
+
+Dev Shrut Jain (U23AI068)  -  Team Leader
+-----------------------------------------
+- Designed and implemented Method 2: the Quantile-Regression DQN
+  backbone (src/networks/qr_dqn.py, src/agent_qrdqn.py,
+  src/train_qrdqn.py) following Dabney et al., AAAI 2018.
+- Derived and coded the asymmetric quantile Huber loss; verified
+  numerical correctness via gradient smoke-test.
+- Adapted the appraisal extractor's three input statistics
+  (predictability, anticipation, power-input) to the QR-DQN value-head
+  representation while leaving the eight appraisal formulas unchanged.
+- Ran the 60,000-frame Method 2 training and computed the comparison
+  metrics reported in row Exp 3 of the master conclusion table.
+
+
+Sweta Rana (U23AI065)
+---------------------
+- Designed and implemented Method 1: the Dueling Double DQN with a
+  bootstrap ensemble of K=3 value heads (src/networks/dueling_dqn.py,
+  src/agent.py, src/train.py).
+- Implemented the eight-dimensional appraisal extractor
+  (src/appraisal/extractor.py): the four paper-faithful CPM channels
+  plus the four newly proposed channels (predictability, anticipation,
+  urgency, familiarity).
+- Implemented the analysis pipeline: correlation matrix, per-dimension
+  variance-inflation factors, effective-rank computation, permutation
+  importance, headline R^2 / RMSE / accuracy
+  (analysis/correlation_analysis.py, analysis/explainability.py,
+  analysis/rmse_r2.py, analysis/generate_figures.py).
+- Wrote the entire research paper (paper/conference_101719.tex):
+  abstract, introduction, related work, background, methodology,
+  mathematical modelling, implementation details, experimental setup,
+  results, discussion, conclusion and future-scope sections.
+- Produced all figures and tables in the paper from the actual run
+  artefacts; ran every plagiarism / AI-detection humanisation pass on
+  the manuscript.
+- Wrote the README and prepared the reproducibility package.
+
+
+Krish Rathod (U23AI049)
+-----------------------
+- Contributed to early proof-reading of the paper draft.
+- Helped with minor model-hyperparameter tuning during the
+  Method 1 training cycle.
+
+
+All listed contributions are factual descriptions of the work done by
+each author in the period leading to the submission. The order of
+authorship on the paper title page (Dev, Sweta, Krish) reflects the
+joint decision of the team.
