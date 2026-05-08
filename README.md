@@ -1,6 +1,6 @@
 # Modeling Cognitive-Affective Processes With Appraisal and Reinforcement Learning
 
-A B.Tech.\ research project at SVNIT, Surat. We extend Zhang, Broekens
+A B.Tech research project at SVNIT, Surat. We extend Zhang, Broekens
 and Jokinen (arXiv:2309.06367, 2023), who mapped four appraisal checks
 from Scherer's Component Process Model (CPM) onto a tabular Q-learning
 agent. Two backbones are implemented and compared head-to-head on the
