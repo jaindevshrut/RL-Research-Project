@@ -1,0 +1,17 @@
+Story,Predicted,Emotion,Val
+Anxiety,Despair,Anxiety,0.26946652
+Anxiety,Despair,Despair,0.2753786
+Anxiety,Despair,Irritation,0.1905856
+Anxiety,Despair,Rage,0.26456925
+Despair,Despair,Anxiety,0.17476033
+Despair,Despair,Despair,0.3894096
+Despair,Despair,Irritation,0.15951692
+Despair,Despair,Rage,0.27631316
+Irritation,Rage,Anxiety,0.23080352
+Irritation,Rage,Despair,0.22464204
+Irritation,Rage,Irritation,0.26679903
+Irritation,Rage,Rage,0.2777554
+Rage,Rage,Anxiety,0.19104867
+Rage,Rage,Despair,0.2579516
+Rage,Rage,Irritation,0.19320554
+Rage,Rage,Rage,0.35779423

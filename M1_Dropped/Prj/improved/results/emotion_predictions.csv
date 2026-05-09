@@ -1,0 +1,12 @@
+Experiment,Emotion,Predicted,Confidence,Correct
+Exp1_2,Boredom,Boredom,1.0000,True
+Exp1_2,Fear,Fear,0.9999,True
+Exp1_2,Happiness,Happiness,0.9879,True
+Exp1_2,Joy,Joy,0.9145,True
+Exp1_2,Pride,Joy,1.0000,False
+Exp1_2,Sadness,Shame,0.9438,False
+Exp1_2,Shame,Fear,0.9998,False
+Exp3,Anxiety,Anxiety,1.0000,True
+Exp3,Despair,Despair,1.0000,True
+Exp3,Irritation,Anxiety,0.9998,False
+Exp3,Rage,Rage,0.9997,True

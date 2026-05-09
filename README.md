@@ -3,18 +3,48 @@
 A B.Tech research project at SVNIT, Surat. We extend Zhang, Broekens
 and Jokinen (arXiv:2309.06367, 2023), who mapped four appraisal checks
 from Scherer's Component Process Model (CPM) onto a tabular Q-learning
-agent. Two backbones are implemented and compared head-to-head on the
-same eight-dimensional appraisal vector:
+agent. The paper documents **four methods** in total along two design
+tracks. The two retained configurations are compared head-to-head on
+the same eight-dimensional appraisal vector:
 
-- **Method 1** (the headline configuration): a Dueling Double DQN that
-  carries a bootstrap ensemble of K=3 value heads.
-- **Method 2** (a controlled comparison): a Quantile-Regression DQN
+- **Method 1b** (the headline configuration): a Dueling Double DQN
+  that carries a bootstrap ensemble of K=3 value heads.
+- **Method 2b** (a controlled comparison): a Quantile-Regression DQN
   with N=51 quantile atoms, following Dabney *et al.*, AAAI 2018.
 
-Method 1 leads on every appraisal-derived metric and is the
-configuration reported in the paper's title and abstract. Method 2 is
-included as a transparent, runnable diagnostic that isolates whether
-Method 1's gain is specific to its representation. (It is.)
+Method 1b leads on every appraisal-derived metric and is the
+configuration reported in the paper's title and abstract. Method 2b
+is included as a transparent, runnable diagnostic that isolates
+whether Method 1b's gain is specific to its representation. (It is.)
+
+Two **preliminary configurations** along the same design tracks are
+documented in the paper's methodology with the empirical evidence
+that motivated their replacement; their code lives outside the
+reproducible pipeline:
+
+- **Method 1a** (preliminary, dropped — `M1_Dropped/`): a vanilla
+  Deep Q-Network paired with a six-dimensional appraisal vector
+  (the four Scherer channels plus a transition-entropy
+  *intrinsic unpredictability* and a TD-error z-score
+  *normative significance*) and a ten-head MLP ensemble classifier.
+  Dropped because the MLP ensemble offered no consistent advantage
+  over a single calibrated SVM and the six-dimensional vector left
+  the Exp3_Free condition with a near-zero R² (0.021 / 0.034) and
+  top-1 accuracy of only 4/7 on Exp1_2 — far below the
+  eight-dimensional Method 1b that replaces it.
+- **Method 2a** (preliminary, dropped — `M2_Dropped/`): a
+  64-quantile Distributional RL value head paired with a calibrated
+  linear SVM on a four-dimensional Scherer mapping
+  (Goal_relevance ← Var(Z), Conduciveness ← E[Z], Power ← action-value
+  variance, Fear ← negative-mass fraction). Dropped because the
+  64-quantile distribution was collapsed to those scalar summaries
+  before reaching the SVM, so the appraisal head consumed strictly
+  less information than the value head learned. Aggregate R² across
+  five seeds collapsed to **−0.326** against a tabular four-dimensional
+  baseline of 0.501, with aggregate RMSE 40.7% worse. Method 2b
+  fixes the structural deficit by sourcing the predictability
+  channel from intra-distribution spread directly, on the same
+  eight-dimensional vector that Method 1b uses.
 
 ## Authors
 
@@ -29,11 +59,17 @@ what.
 
 ## Headline result
 
-| Exp.  | Configuration | Backbone | Dim. | Acc.  | R²    | RMSE  |
-|-------|---------------|----------|------|-------|-------|-------|
-| Exp 1 | Baseline-4D   | Method 1 | 4    | 0.648 | 0.366 | 0.345 |
-| Exp 2 | Extended-8D   | Method 1 | 8    | **0.903** | **0.757** | **0.214** |
-| Exp 3 | Extended-8D   | Method 2 | 8    | 0.868 | 0.694 | 0.239 |
+| Exp.  | Configuration | Backbone  | Dim. | Acc.  | R²    | RMSE  |
+|-------|---------------|-----------|------|-------|-------|-------|
+| Exp 1 | Baseline-4D   | Method 1b | 4    | 0.648 | 0.366 | 0.345 |
+| Exp 2 | Extended-8D   | Method 1b | 8    | **0.903** | **0.757** | **0.214** |
+| Exp 3 | Extended-8D   | Method 2b | 8    | 0.868 | 0.694 | 0.239 |
+
+Method 1a and Method 2a are not in this table because they were
+evaluated on the Scherer-style 7-emotion / 4-emotion protocol rather
+than the four task-event proxies (neutral, joy, satisfaction,
+despair) used here; their per-experiment numbers are reported inline
+in the corresponding methodology subsections of the paper.
 
 Identical seed, identical environment, identical 60,000-frame budget
 across all three runs. The eight-dimensional appraisal vector lifts
@@ -53,24 +89,31 @@ RL-Research-Project/
 │
 ├── paper/                           # publishable artefacts
 │   ├── conference_101719.tex        # IEEE-conference LaTeX source
-│   ├── conference_101719.pdf        # compiled paper (11 pages)
+│   ├── conference_101719.pdf        # compiled paper (13 pages)
 │   └── figures/                     # all figures used by the .tex
 │
 ├── presentation/                    # slide deck for the project review
 │   └── RL-Research-Project.pptx
 │
-├── src/                             # executable code
+├── M1_Dropped/                      # Method 1a (preliminary, dropped)
+│   └── Prj/Appraisal_RL/            # DQN + 6D appraisal + 10-MLP ensemble
+│                                    # documented in the paper §IV.C
+├── M2_Dropped/                      # Method 2a (preliminary, dropped)
+│   ├── Exp1_2/                      # 64-quantile Distributional RL +
+│   └── Exp3/                        # calibrated SVM, documented §IV.E
+│
+├── src/                             # executable code (Method 1b + 2b)
 │   ├── config.py                    # all hyperparameters in one dataclass
 │   ├── env/gridworld.py             # 7×7 key-and-lava grid world
 │   ├── replay_buffer.py             # uniform + prioritised replay
 │   ├── networks/
-│   │   ├── dueling_dqn.py           # Method 1: dueling + ensemble
-│   │   └── qr_dqn.py                # Method 2: quantile-regression head
+│   │   ├── dueling_dqn.py           # Method 1b: dueling + ensemble
+│   │   └── qr_dqn.py                # Method 2b: quantile-regression head
 │   ├── appraisal/extractor.py       # 8-dim appraisal extraction (shared)
-│   ├── agent.py                     # Method 1 agent
-│   ├── agent_qrdqn.py               # Method 2 agent
-│   ├── train.py                     # Method 1 training entry-point
-│   └── train_qrdqn.py               # Method 2 training entry-point
+│   ├── agent.py                     # Method 1b agent
+│   ├── agent_qrdqn.py               # Method 2b agent
+│   ├── train.py                     # Method 1b training entry-point
+│   └── train_qrdqn.py               # Method 2b training entry-point
 │
 ├── analysis/                        # everything used to produce paper plots
 │   ├── correlation_analysis.py      # Pearson, VIF, effective rank
@@ -85,9 +128,9 @@ RL-Research-Project/
 │   │   ├── returns.npy
 │   │   ├── eval.json
 │   │   └── config.json
-│   ├── extended_8dim/               # Exp 2 (Method 1, headline)
+│   ├── extended_8dim/               # Exp 2 (Method 1b, headline)
 │   │   └── ...
-│   ├── qrdqn_8dim/                  # Exp 3 (Method 2, comparison)
+│   ├── qrdqn_8dim/                  # Exp 3 (Method 2b, comparison)
 │   │   └── ...
 │   └── rmse_r2_summary.json         # consolidated metrics table
 │
@@ -112,13 +155,13 @@ pip install -r requirements.txt
 ### Step 2 — train all three conditions
 
 ```bash
-# Exp 1 — Baseline-4D (paper-faithful restriction, on Method 1 backbone)
+# Exp 1 — Baseline-4D (paper-faithful restriction, on Method 1b backbone)
 python -m src.train --run baseline_4dim
 
-# Exp 2 — Extended-8D, Method 1 (the headline configuration)
+# Exp 2 — Extended-8D, Method 1b (the headline configuration)
 python -m src.train --run extended_8dim
 
-# Exp 3 — Extended-8D, Method 2 (QR-DQN comparison)
+# Exp 3 — Extended-8D, Method 2b (QR-DQN comparison)
 python -m src.train_qrdqn --run qrdqn_8dim
 ```
 

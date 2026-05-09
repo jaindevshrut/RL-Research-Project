@@ -11,23 +11,63 @@ Team      : Dev Shrut Jain (U23AI068), Sweta Rana (U23AI065),
 
 Dev Shrut Jain (U23AI068)  -  Team Leader
 -----------------------------------------
-- Designed and implemented Method 2: the Quantile-Regression DQN
-  backbone (src/networks/qr_dqn.py, src/agent_qrdqn.py,
-  src/train_qrdqn.py) following Dabney et al., AAAI 2018.
+- Designed and implemented Method 2a (preliminary, dropped): a
+  Distributional RL backbone with N=64 quantile atoms paired with a
+  calibrated linear SVM on a four-dimensional Scherer mapping
+  (M2_Dropped/). The configuration mapped Goal_relevance, Conduciveness,
+  Power and Fear to Var(Z), E[Z], action-value variance and the
+  negative-mass fraction respectively, and routed them onto the
+  original Scherer dimensions through a compatibility map; per-condition
+  SVM C was calibrated to the human-rater dispersion of Zhang et al.
+  (C=0.0032 free, C=0.014 limit) and runs were aggregated over five
+  seeds {42, 123, 999, 2024, 7}.
+- Documented why Method 2a was dropped: aggregate R^2 collapsed to
+  -0.326 against a tabular four-dimensional baseline of 0.501 across
+  the five seeds, with aggregate RMSE 40.7% worse than baseline; the
+  cause was that the 64-quantile distribution was collapsed to the
+  scalar summaries E[Z], Var(Z) and a negative-mass fraction before
+  reaching the SVM.
+- Designed and implemented Method 2b (the kept QR-DQN configuration in
+  the paper): the Quantile-Regression DQN backbone with N=51 atoms
+  (src/networks/qr_dqn.py, src/agent_qrdqn.py, src/train_qrdqn.py)
+  following Dabney et al., AAAI 2018, on top of the same
+  eight-dimensional appraisal vector that Method 1b uses. This fixed
+  the structural deficit of Method 2a by sourcing the predictability
+  channel directly from the intra-distribution spread of the greedy
+  action.
 - Derived and coded the asymmetric quantile Huber loss; verified
   numerical correctness via gradient smoke-test.
 - Adapted the appraisal extractor's three input statistics
-  (predictability, anticipation, power-input) to the QR-DQN value-head
+  (predictability, anticipation, power) to the QR-DQN value-head
   representation while leaving the eight appraisal formulas unchanged.
-- Ran the 60,000-frame Method 2 training and computed the comparison
+- Ran the 60,000-frame Method 2b training and computed the comparison
   metrics reported in row Exp 3 of the master conclusion table.
 
 
 Sweta Rana (U23AI065)
 ---------------------
-- Designed and implemented Method 1: the Dueling Double DQN with a
-  bootstrap ensemble of K=3 value heads (src/networks/dueling_dqn.py,
-  src/agent.py, src/train.py).
+- Designed and implemented Method 1a (preliminary, dropped): a vanilla
+  Deep Q-Network paired with a six-dimensional appraisal vector and a
+  ten-head MLP ensemble classifier (M1_Dropped/Prj/Appraisal_RL/).
+  The six dimensions consisted of the four original Scherer channels
+  plus intrinsic unpredictability (transition entropy
+  H = -Sum p_i log p_i / log n) and normative significance
+  (TD-error z-score |delta - mean(delta)| / (sigma_delta + epsilon)).
+- Documented why Method 1a was dropped: the MLP ensemble offered no
+  consistent improvement over a single calibrated SVM on the
+  Scherer-style four-experiment evaluation
+  (R^2 = {0.555, 0.782, 0.021, 0.483} vs SVM {0.505, 0.762, 0.034,
+  0.656}); the Exp3_Free R^2 collapsed to near-zero under both
+  classifiers, and top-1 emotion classification reached only 4/7
+  (57.1%) on Exp1_2 and 3/4 (75%) on Exp3 -- substantially below the
+  headline accuracies of the eight-dimensional extension.
+- Designed and implemented Method 1b (the kept and headline
+  configuration in the paper): the Dueling Double DQN with a bootstrap
+  ensemble of K=3 value heads (src/networks/dueling_dqn.py,
+  src/agent.py, src/train.py). This fixed both deficits of Method 1a
+  by extending the appraisal vector from six to eight dimensions with
+  channels read from genuinely disjoint statistics, and by upgrading
+  the backbone so those statistics become available as named outputs.
 - Implemented the eight-dimensional appraisal extractor
   (src/appraisal/extractor.py): the four paper-faithful CPM channels
   plus the four newly proposed channels (predictability, anticipation,
@@ -38,9 +78,10 @@ Sweta Rana (U23AI065)
   (analysis/correlation_analysis.py, analysis/explainability.py,
   analysis/rmse_r2.py, analysis/generate_figures.py).
 - Wrote the entire research paper (paper/conference_101719.tex):
-  abstract, introduction, related work, background, methodology,
-  mathematical modelling, implementation details, experimental setup,
-  results, discussion, conclusion and future-scope sections.
+  abstract, introduction, related work, background, methodology
+  (covering all four methods: 1a, 1b, 2a, 2b), mathematical modelling,
+  implementation details, experimental setup, results, discussion,
+  conclusion and future-scope sections.
 - Produced all figures and tables in the paper from the actual run
   artefacts; ran every plagiarism / AI-detection humanisation pass on
   the manuscript.
@@ -51,10 +92,18 @@ Krish Rathod (U23AI049)
 -----------------------
 - Contributed to early proof-reading of the paper draft.
 - Helped with minor model-hyperparameter tuning during the
-  Method 1 training cycle.
+  Method 1b training cycle.
 
 
 All listed contributions are factual descriptions of the work done by
 each author in the period leading to the submission. The order of
 authorship on the paper title page (Dev, Sweta, Krish) reflects the
 joint decision of the team.
+
+The paper documents four methods in total. The two preliminary
+configurations (Method 1a by Sweta, Method 2a by Dev) are reported
+transparently in the methodology section together with the empirical
+evidence that motivated their replacement; the two retained
+configurations (Method 1b by Sweta, the headline; Method 2b by Dev,
+the parallel comparison) are evaluated head-to-head in the results
+section.

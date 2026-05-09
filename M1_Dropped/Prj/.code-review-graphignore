@@ -1,0 +1,6 @@
+*.pdf
+__pycache__/**
+*.pyc
+data/**
+logs/**
+benchmarks/results/**

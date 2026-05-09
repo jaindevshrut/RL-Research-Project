@@ -1,0 +1,16 @@
+PS D:\class\Sem6\RL\Prj> python .\improved\improved_experiment.py
+===========================================================================
+  IMPROVED APPRAISAL-RL MODEL
+  3 Novel Improvements over the Original Paper
+===========================================================================
+[STEP 1] Training DQN agents on all 11 emotion scenarios...
+------------------------------------------------------------
+Training Boredom      ... OK  Sud=0.000  GR=0.000  Cdc=0.500  Pwr=0.600  IU=0.000  NS=0.000
+Training Fear         ... OK  Sud=0.799  GR=1.000  Cdc=0.000  Pwr=0.000  IU=0.724  NS=0.921
+Training Happiness    ... OK  Sud=0.000  GR=0.426  Cdc=0.713  Pwr=0.996  IU=0.000  NS=1.000
+Training Joy          ... OK  Sud=0.801  GR=1.000  Cdc=1.000  Pwr=0.000  IU=0.720  NS=0.786
+Training Pride        ... OK  Sud=0.505  GR=0.902  Cdc=0.951  Pwr=0.405  IU=0.998  NS=1.000
+Training Sadness      ... OK  Sud=0.202  GR=0.836  Cdc=0.082  Pwr=0.000  IU=0.725  NS=0.461
+Training Shame        ... OK  Sud=0.817  GR=1.000  Cdc=0.000  Pwr=0.402  IU=0.683  NS=1.000
+Training Anxiety      ... OK  Sud=0.200  GR=0.893  Cdc=0.053  Pwr=0.000  IU=0.722  NS=0.478
+Training Despair      ... OK  Sud=0.799  GR=1.000  Cdc=0.000  Pwr=0.000  IU=0.725  NS=0.797

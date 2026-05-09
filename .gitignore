@@ -23,3 +23,16 @@ Thumbs.db
 
 # Submission artefacts (regenerable from paper/)
 Overleaf-paper.zip
+
+# Mac OS metadata folders that ship inside zipped third-party trees
+__MACOSX/
+
+# Scratch directory created when extracting the .pptx for inspection
+_pptx_extract/
+
+# Code-review-graph tool data (per-folder gitignore handles its own)
+.code-review-graph/
+
+# Python virtual environments anywhere in the repo
+.venv/
+venv/

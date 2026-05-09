@@ -78,11 +78,17 @@ single residual redundancy---\emph{anticipation} reaches a variance-inflation
 factor of $7.4$ once the dueling head converges, and we explain why it
 is structural rather than a modelling oversight. As a
 parallel comparison, we also build a Quantile-Regression DQN backbone
-(Method~2) following~\cite{dabney2018qrdqn}, in which the dueling V-head and
+(Method~2b) following~\cite{dabney2018qrdqn}, in which the dueling V-head and
 the bootstrap ensemble are replaced by a $51$-atom return distribution and
 the appraisal vector reads its uncertainty signal from intra-distribution
 spread; we report its numbers honestly alongside the headline configuration
-so that the design trade-off is visible to the reader. We end with concrete
+so that the design trade-off is visible to the reader. Two preliminary
+configurations explored along the way---Method~1a (a vanilla DQN with a
+six-dimensional appraisal vector and a ten-head MLP ensemble) and
+Method~2a (a $64$-quantile distributional value head with a calibrated
+SVM classifier on a four-dimensional Scherer mapping)---are documented
+in full with the empirical evidence that motivated their replacement
+by Method~1b and Method~2b respectively. We end with concrete
 pointers toward a vignette-grounded extension.
 \end{abstract}
 
@@ -192,6 +198,16 @@ reproducible from the artefacts archived under \texttt{runs/}, anchors
 the empirical claims. Classification accuracy lifts from $64.8\%$ to
 $90.3\%$; paper-style $R^{2}$ rises from $0.366$ to $0.757$; greedy
 return is unchanged.
+
+\item A transparent record of the two preliminary configurations
+considered before settling on the headline pairing. Method~1a
+(Section~\ref{sec:method1a}, a vanilla DQN with a six-dimensional
+appraisal vector and an MLP ensemble) and Method~2a
+(Section~\ref{sec:method2a}, a $64$-quantile distributional value head
+with a calibrated SVM on a four-dimensional Scherer mapping) are
+reported in full, with the empirical evidence that motivated their
+replacement by Method~1b and Method~2b. The aim is to make the design
+trajectory of the paper, not just its endpoint, auditable.
 \end{itemize}
 
 The remainder of the paper is organised as follows.
@@ -246,8 +262,8 @@ quantile-regression variant of~\cite{dabney2018qrdqn}, provides a
 complementary mechanism for modelling return uncertainty but consumes
 the appraisal layer with a distribution-valued signal whose projection
 onto interpretable scalars introduces information loss; we examine this
-trade-off empirically by building a parallel QR-DQN backbone (Method~2,
-Section~\ref{sec:method2}) and comparing it head-to-head with our
+trade-off empirically by building a parallel QR-DQN backbone (Method~2b,
+Section~\ref{sec:method2b}) and comparing it head-to-head with our
 headline configuration in Section~\ref{sec:method2_results}.
 
 \subsection{Coupling Appraisal with Reinforcement Learning}
@@ -419,7 +435,77 @@ state identifier $\mathrm{id}(s) = (r, c, h)$ used by the count tables tracks
 the agent's row, column and key-holding flag, which makes count-based novelty
 and familiarity exact rather than approximated.
 
-\subsection{Dueling Double DQN with Bootstrap Ensemble}
+\subsection{Method~1a (Preliminary): DQN with Six-Dimensional Appraisal and MLP Ensemble}
+\label{sec:method1a}
+The earlier configuration along the Method~1b design track (preceding
+the headline backbone of Section~\ref{sec:method1b}) paired a vanilla
+Deep Q-Network with a six-dimensional appraisal vector and a ten-head
+multilayer-perceptron (MLP) ensemble classifier. The aim was
+to enrich the four-dimensional Scherer
+vector~\cite{zhang2023modeling} with two additional CPM-aligned
+channels read from disjoint statistics. The four original components
+$x_{1},\dots,x_{4}$ (suddenness, goal relevance, conduciveness, power)
+remained as in~\cite{zhang2023modeling}, and the two newly proposed
+channels were
+\begin{align}
+x_{5}^{(1a)} &= -\frac{\sum_{i} p_{i}\log p_{i}}{\log n}
+   & \text{(intrinsic unpredictability)} \label{eq:m1a_entropy}\\[2pt]
+x_{6}^{(1a)} &= \frac{|\delta - \bar\delta|}{\sigma_{\delta} + \varepsilon}
+   & \text{(normative significance)} \label{eq:m1a_zscore}
+\end{align}
+where $\{p_{i}\}$ are the empirical transition probabilities from
+$(s_{t}, a_{t})$, $n$ is the support size of those transitions,
+$\bar\delta$ and $\sigma_{\delta}$ are the running mean and standard
+deviation of the TD error, and $\varepsilon = 10^{-6}$ is a
+numerical-stability constant. Equation~\eqref{eq:m1a_entropy} is the
+Shannon entropy of the empirical transition distribution normalised by
+$\log n$ so that $x_{5}^{(1a)} \in [0, 1]$, with the value reading as
+``intrinsic unpredictability'' of the next state given the current
+state-action; equation~\eqref{eq:m1a_zscore} expresses the absolute
+deviation of the current TD error from its running mean as a
+unit-scale ``normative significance'' signal.
+
+The RL backbone was a single-network DQN (no dueling head, no
+double-Q correction, no ensemble) trained for $60{,}000$ frames with
+learning rate $5\!\times\!10^{-3}$, discount factor $\gamma = 0.9$,
+exploration rate $\varepsilon_{\text{explore}} = 0.3$ decayed by
+$0.9995$ per step to a floor of $0.01$, replay buffer of capacity
+$10{,}000$, batch size $64$, hidden width $64$ and a target network
+synchronised every $50$ episodes. The resulting six-dimensional
+appraisal vector was passed to two parallel classifiers: a calibrated
+linear SVM (the original head of~\cite{zhang2023modeling}) and an
+ensemble of $K_{\text{MLP}} = 10$ independently initialised MLPs, each
+composed of one hidden layer with ReLU activation, dropout
+regularisation and a softmax output. The ensemble emotion distribution
+was the average of the ten softmax outputs.
+
+\textbf{Why this configuration was not retained.} On the
+Scherer-style four-experiment evaluation
+(Exp$_{\text{1\_Free}}$, Exp$_{\text{2\_Limit}}$,
+Exp$_{\text{3\_Free}}$, Exp$_{\text{3\_Limit}}$), the MLP ensemble
+attained $R^{2} = \{0.555,\, 0.782,\, 0.021,\, 0.483\}$ against the
+calibrated linear SVM head's $\{0.505,\, 0.762,\, 0.034,\, 0.656\}$ on
+the same six-dimensional features. The MLP ensemble offered no
+consistent improvement over the single SVM and was strictly worse on
+Exp$_{\text{3\_Limit}}$. The Exp$_{\text{3\_Free}}$ $R^{2}$ collapsed
+to near-zero ($0.021$ and $0.034$) under both classifiers, indicating
+that the two new channels $x_{5}^{(1a)}, x_{6}^{(1a)}$ were
+insufficient to disambiguate the four-emotion free-choice setting.
+Top-1 emotion classification reached only $4/7$ ($57.1\%$) on
+Exp$_{\text{1\_2}}$ and $3/4$ ($75\%$) on Exp$_{\text{3}}$,
+substantially below the headline accuracies reported in
+Section~\ref{sec:results} for the eight-dimensional extension. Two
+design corrections followed and characterise the headline
+configuration of Section~\ref{sec:method1b}: the appraisal vector was
+extended from six to eight dimensions with channels read from
+genuinely disjoint statistics (ensemble dispersion, dueling V-head,
+within-episode time index, state-visit count), and the backbone was
+upgraded from a vanilla DQN to a Dueling Double DQN with a bootstrap
+ensemble so that those statistics actually become available as named
+outputs.
+
+\subsection{Method~1b: Dueling Double DQN with Bootstrap Ensemble}
+\label{sec:method1b}
 The value network consists of a shared convolutional trunk
 \begin{equation}
 \phi_{\psi}: \mathbb{R}^{7\times 7\times 2} \to \mathbb{R}^{128}
@@ -505,12 +591,153 @@ $x_{8}$ & familiarity    & state-visit count $n(s)$ \\
 \end{tabular}
 \end{table}
 
-\subsection{Method~2: Quantile-Regression DQN Backbone}
-\label{sec:method2}
+\subsection{Method~2a (Preliminary): Distributional RL with Calibrated SVM}
+\label{sec:method2a}
+The earlier configuration along the Method~2b design track (preceding
+the QR-DQN backbone of Section~\ref{sec:method2b}) kept the
+four-dimensional Scherer mapping unchanged but replaced the scalar
+action-value $Q(s, a)$ with a full $N$-quantile return distribution
+\begin{equation}
+Z(s, a) = \big\{z_{1}(s, a),\, z_{2}(s, a),\, \dots,\, z_{N}(s, a)\big\},
+\qquad N = 64,
+\label{eq:m2a_z}
+\end{equation}
+read from a value head trained at the quantile midpoints
+\begin{equation}
+\tau_{i} = \frac{i + 0.5}{N},
+\qquad i = 0, 1, \dots, N - 1.
+\label{eq:m2a_tau}
+\end{equation}
+The mean action value, used both for greedy action selection and for
+appraisal extraction, was the within-distribution average
+\begin{equation}
+\bar Q(s, a) = \frac{1}{N}\sum_{i=1}^{N} z_{i}(s, a),
+\qquad
+a^{\star} = \arg\max_{a} \bar Q(s', a).
+\label{eq:m2a_qbar}
+\end{equation}
+The Bellman target was the per-atom distributional shift
+\begin{align}
+\mathcal{T}Z &= r + \gamma\, Z(s', a^{\star})
+   & \text{(non-terminal)}, \label{eq:m2a_bellman_nt}\\
+\mathcal{T}Z &= \{r, r, \dots, r\}
+   & \text{(terminal)}. \label{eq:m2a_bellman_t}
+\end{align}
+With pairwise residual $u_{ij} = t_{j} - z_{i}$, where $t_{j}$ is the
+$j$-th target atom, the Huber kernel was
+\begin{equation}
+L_{\kappa}(u) =
+\begin{cases}
+\tfrac{1}{2} u^{2}, & |u| \le \kappa, \\[2pt]
+\kappa\!\left(|u| - \tfrac{1}{2}\kappa\right), & \text{otherwise},
+\end{cases}
+\label{eq:m2a_huber}
+\end{equation}
+and the asymmetric quantile penalty took the final form
+\begin{equation}
+\rho_{i} = \frac{1}{\kappa}\,
+\big|\tau_{i} - \mathbb{I}\{u_{ij} < 0\}\big|\,
+L_{\kappa}(u_{ij}),
+\qquad \kappa = 1.0,
+\label{eq:m2a_rho}
+\end{equation}
+with the per-atom incremental update
+\begin{equation}
+z_{i}(s, a) \leftarrow z_{i}(s, a) + \alpha \cdot g_{i},
+\label{eq:m2a_update}
+\end{equation}
+where $g_{i}$ is the gradient of $\rho_{i}$ with respect to $z_{i}$.
+Sampling from the prioritised replay buffer used the per-transition
+priority and probability
+\begin{equation}
+p = \frac{1}{N}\sum_{i=1}^{N} |t_{i} - z_{i}| + \varepsilon,
+\qquad
+P(i) = \frac{p_{i}}{\sum_{k} p_{k}}.
+\label{eq:m2a_per}
+\end{equation}
+
+\paragraph{Distribution-based appraisal mapping.} The four Scherer
+checks were re-derived from the return distribution $Z(s, a)$ rather
+than from the scalar $Q(s, a)$:
+\begin{align}
+\text{Goal\_relevance}(s, a) &= \mathrm{Var}\big(Z(s, a)\big),
+   \label{eq:m2a_gr}\\[2pt]
+\text{Conduciveness}(s, a) &= \mathbb{E}\big[Z(s, a)\big],
+   \label{eq:m2a_cond}\\[2pt]
+\text{Power}(s) &= \mathrm{Var}\!\Big(\big\{\mathbb{E}[Z(s, a_{1})],\, \dots,\, \mathbb{E}[Z(s, a_{|A|})]\big\}\Big),
+   \label{eq:m2a_pow}\\[2pt]
+\text{Fear}(s, a) &= \frac{1}{N}\sum_{i=1}^{N} \mathbb{I}\{z_{i}(s, a) < 0\}.
+   \label{eq:m2a_fear}
+\end{align}
+These were then routed onto the original Scherer dimensions through a
+compatibility map
+\begin{equation*}
+\begin{aligned}
+\text{Suddenness} &\leftarrow \text{Fear}, &
+\text{Goal\_relevance} &\leftarrow \text{Variance}, \\
+\text{Conduciveness} &\leftarrow \text{Mean}, &
+\text{Power} &\leftarrow \text{Action-value variance}.
+\end{aligned}
+\end{equation*}
+Each unbounded statistic was passed through a saturating
+transformation that maps it into $[0, 1]$:
+\begin{equation}
+g' = \frac{g}{1 + g},
+\quad
+c' = \frac{1}{1 + e^{-c/5}},
+\quad
+p' = \frac{p}{1 + p},
+\label{eq:m2a_transforms}
+\end{equation}
+and the Fear channel was clipped to $[0, 1]$ directly. The classifier
+inputs were finally min--max normalised:
+\begin{equation}
+x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}.
+\label{eq:m2a_norm}
+\end{equation}
+
+\paragraph{Calibrated classifier and multi-seed protocol.} The
+classifier was a linear SVM whose regularisation constant $C$ was
+calibrated to match the precision dispersion of the human-rater
+data of~\cite{zhang2023modeling}, yielding $C = 0.0032$ for the free
+condition and $C = 0.014$ for the limit (forced-choice) condition.
+Five independent seeds $\{42,\, 123,\, 999,\, 2024,\, 7\}$ were run
+per scenario across the seven Scherer-style emotions (Boredom, Fear,
+Happiness, Joy, Pride, Sadness, Shame); reported metrics are mean and
+standard deviation across seeds. Performance metrics were the standard
+\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(y_{i} - \hat y_{i})^{2}},
+\qquad
+R^{2} = 1 - \frac{\sum_{i}(y_{i} - \hat y_{i})^{2}}{\sum_{i}(y_{i} - \bar y)^{2}}.
+\label{eq:m2a_metrics}
+\end{equation}
+
+\textbf{Why this configuration was not retained.} The aggregate
+$R^{2}$ across the five seeds dropped to $-0.326$ against a tabular
+four-dimensional baseline of $0.501$ on the same scenarios, and the
+aggregate RMSE was $40.7\%$ worse than that baseline. The cause is
+structural rather than a tuning failure: the appraisal extractor
+consumes the $64$-quantile distribution only through scalar summaries,
+namely $\mathbb{E}[Z]$ and $\mathrm{Var}(Z)$ in
+equations~\eqref{eq:m2a_gr}--\eqref{eq:m2a_pow} and the
+negative-mass fraction in~\eqref{eq:m2a_fear}. The remaining
+distributional information is collapsed before it reaches the SVM, so
+the quantile head ends up trained on a richer distribution than the
+appraisal vector consumes. This single observation became the design
+constraint for Method~2b (Section~\ref{sec:method2b}): if a
+distributional value head is retained, the appraisal vector must read
+its uncertainty signal directly from intra-distribution spread rather
+than from a single moment, and it must sit in the same
+eight-dimensional space as Method~1b
+(Section~\ref{sec:appraisal}) so that the two backbones are compared
+on a representation that they actually share.
+
+\subsection{Method~2b: Quantile-Regression DQN Backbone}
+\label{sec:method2b}
 The headline backbone above replaces the actor-critic of the original
 work with a Dueling Double DQN that carries a bootstrap ensemble. As a
 parallel comparison we also build a second backbone, denoted
-\textbf{Method~2}, on top of Quantile-Regression DQN
+\textbf{Method~2b}, on top of Quantile-Regression DQN
 (QR-DQN)~\cite{dabney2018qrdqn}. QR-DQN models the return as a
 distribution $Z(s, a)$ supported on $N{=}51$ atoms placed at quantile
 midpoints $\tau_{i} = (i - \tfrac{1}{2})/N$ for $i = 1, \dots, N$, and
@@ -520,12 +747,12 @@ isolates a single research question that the headline backbone leaves
 ambiguous: is the gain in Section~\ref{sec:results} attributable to the
 dueling V-head and the ensemble specifically, or would any value-head
 representation that exposes a usable uncertainty signal achieve the same
-result? Method~2 keeps every other element identical: the $7\times 7$
+result? Method~2b keeps every other element identical: the $7\times 7$
 grid world, the eight-dimensional appraisal vector, the prioritised
 replay buffer, the seed and the total-frame budget. Only the value head
 and the loss are swapped.
 
-The appraisal extractor consumes Method~2's outputs through three
+The appraisal extractor consumes Method~2b's outputs through three
 explicit substitutions, none of which change the formulas
 \eqref{eq:sud}--\eqref{eq:fam}:
 \begin{itemize}
@@ -543,7 +770,7 @@ with $a^{\star}(s) = \arg\max_{a} \bar Q(s, a)$.
 \end{itemize}
 The substitutions are deliberately minimal: they preserve every
 appraisal-formula constant and merely re-source the three input
-statistics that Method~1 reads from a representation that QR-DQN does
+statistics that Method~1b reads from a representation that QR-DQN does
 not provide.
 
 \section{Mathematical Modelling}
@@ -566,9 +793,9 @@ where $\mathcal{H}_{1}(\hat y, y) = \tfrac{1}{2}(\hat y - y)^{2}$ if
 $|\hat y - y| < 1$ and $|\hat y - y| - \tfrac{1}{2}$ otherwise (Huber loss).
 Gradients are clipped to a global norm of $10$.
 
-\subsection{Method~2 Training Objective: Asymmetric Quantile Huber Loss}
+\subsection{Method~2b Training Objective: Asymmetric Quantile Huber Loss}
 \label{sec:qhuber}
-Method~2 (Section~\ref{sec:method2}) replaces the scalar Huber loss above
+Method~2b (Section~\ref{sec:method2b}) replaces the scalar Huber loss above
 with the asymmetric quantile Huber loss of~\cite{dabney2018qrdqn}. Let
 $\theta_{i}(s, a)$ denote the $i$-th predicted atom and let
 $\hat\theta_{j}(s', a^{\star})$ denote the $j$-th atom of the Double-DQN
@@ -587,7 +814,7 @@ indicator term implements the asymmetric quantile penalty. The expression
 is minimised when the predicted atoms $\{\theta_{i}\}$ form a quantile
 representation of the target distribution at levels $\{\tau_{i}\}$.
 Gradient flow, optimiser, batch size, replay buffer and target-sync
-schedule are identical to Method~1, so the only intentional source of
+schedule are identical to Method~1b, so the only intentional source of
 variation between the two backbones is the loss and the value-head
 parameterisation.
 
@@ -682,7 +909,7 @@ Exploration $\varepsilon$       & 1.0 $\rightarrow$ 0.05 / 20k frames \\
 Total training frames           & 60,000 \\
 Random seed                     & 0 \\
 \midrule
-\multicolumn{2}{l}{\emph{Method~2 only (QR-DQN)}} \\
+\multicolumn{2}{l}{\emph{Method~2b only (QR-DQN)}} \\
 Quantile atoms $N$              & 51 \\
 Quantile Huber width $\kappa$   & 1.0 \\
 \bottomrule
@@ -711,14 +938,14 @@ series (\texttt{returns.npy}), the periodic greedy-evaluation returns
 (\texttt{eval.json}) and the exact configuration used (\texttt{config.json}).
 Three runs are reported in this paper: \texttt{baseline\_4dim}
 (paper-faithful restriction to dimensions $x_{1}$--$x_{4}$),
-\texttt{extended\_8dim} (full vector on the Method~1 backbone), and
-\texttt{qrdqn\_8dim} (full vector on the Method~2 backbone). All three
+\texttt{extended\_8dim} (full vector on the Method~1b backbone), and
+\texttt{qrdqn\_8dim} (full vector on the Method~2b backbone). All three
 share the same seed, environment, trunk architecture and total-frame
 budget; \texttt{baseline\_4dim} and \texttt{extended\_8dim} additionally
 share the value head, isolating the appraisal-vector contribution, while
 \texttt{qrdqn\_8dim} swaps in the QR-DQN head and loss of
-Section~\ref{sec:method2}. The Method~2 entry-point is
-\texttt{src/train\_qrdqn.py}, separate from the Method~1 entry-point
+Section~\ref{sec:method2b}. The Method~2b entry-point is
+\texttt{src/train\_qrdqn.py}, separate from the Method~1b entry-point
 \texttt{src/train.py}, and writes its artefacts to
 \texttt{runs/qrdqn\_8dim/} in the same format the analysis scripts
 already consume.
@@ -747,16 +974,16 @@ Three conditions are compared.
 $x_{1}$--$x_{4}$ only. This corresponds to the paper-faithful 4-dimensional
 vector of~\cite{zhang2023modeling} but on top of the same Dueling Double DQN
 backbone, which isolates the contribution of the appraisal vector itself.
-(C2)~\textbf{Extended-8D (Method~1)}: the full eight-dimensional vector on
+(C2)~\textbf{Extended-8D (Method~1b)}: the full eight-dimensional vector on
 the Dueling Double DQN with bootstrap ensemble; this is the headline
 configuration of the paper.
-(C3)~\textbf{Extended-8D (Method~2)}: the same eight-dimensional vector
-on the QR-DQN backbone of Section~\ref{sec:method2}, which uses $N{=}51$
+(C3)~\textbf{Extended-8D (Method~2b)}: the same eight-dimensional vector
+on the QR-DQN backbone of Section~\ref{sec:method2b}, which uses $N{=}51$
 quantile atoms and the asymmetric quantile Huber loss of
 equation~\eqref{eq:qhuber}. (C3) shares the seed, the environment, the
 trunk architecture and the appraisal-formula constants with (C2); only
 the value head and the loss differ. The role of (C3) is diagnostic,
-not competitive: we report it to expose whether Method~1's gain is
+not competitive: we report it to expose whether Method~1b's gain is
 specific to its representation, and the answer (Section~\ref{sec:method2_results})
 is that it is.
 
@@ -955,14 +1182,14 @@ side-by-side comparison across all three experimental conditions.
 \caption{Headline metric comparison across the three experimental
 conditions. The four-dimensional baseline (blue) is dominated by both
 eight-dimensional variants on every metric, confirming that the
-informational gain comes from the four added channels. Method~1
+informational gain comes from the four added channels. Method~1b
 (orange) is the chosen configuration: it leads on accuracy, $R^{2}$ and
 RMSE, and it does so by a margin large enough to justify the dueling
 V-head and the bootstrap ensemble that distinguish it from
-Method~2 (green). Method~2 attains a competitive score on its own and
+Method~2b (green). Method~2b attains a competitive score on its own and
 is reported here as a controlled diagnostic, not as the headline
 configuration. Greedy task return is identical between Baseline-4D and
-Method~1 (Section~\ref{sec:results}-A); Method~2's greedy return
+Method~1b (Section~\ref{sec:results}-A); Method~2b's greedy return
 drifts to $-1.01$ by end-of-training.}
 \label{fig:bars}
 \end{figure}
@@ -1018,16 +1245,16 @@ resolves both confusions.}
 \label{fig:cm}
 \end{figure}
 
-\subsection{Comparison Against Method~2 (QR-DQN)}
+\subsection{Comparison Against Method~2b (QR-DQN)}
 \label{sec:method2_results}
-Method~2 (Section~\ref{sec:method2}) is run under the same seed, the
+Method~2b (Section~\ref{sec:method2b}) is run under the same seed, the
 same total-frame budget and the same eight-dimensional appraisal vector
-as Method~1, with only the value head and the Bellman loss replaced by
+as Method~1b, with only the value head and the Bellman loss replaced by
 the QR-DQN parameterisation of equation~\eqref{eq:qhuber}. The result
 is a fair test of whether the dueling V-head and the bootstrap ensemble
-of Method~1 are doing real work, or whether any value-head
+of Method~1b are doing real work, or whether any value-head
 representation that exposes a usable uncertainty signal would have
-sufficed. Method~2 attains classification accuracy $0.868$, paper-style
+sufficed. Method~2b attains classification accuracy $0.868$, paper-style
 $R^{2} = 0.694$ and $\text{RMSE} = 0.239$ on the held-out test split
 (row Exp~3 of Table~\ref{tab:master}), which is well above the
 4-dimensional baseline (Exp~1) but trails the headline configuration
@@ -1036,19 +1263,19 @@ accuracy, $-0.063$ of $R^{2}$ and $+0.025$ of RMSE. Two observations
 help explain the gap. First, the intra-distribution spread
 $\sigma_{Z}(s)$ that QR-DQN exposes for \emph{predictability} is
 dominated by aleatoric width in a near-deterministic grid world,
-whereas the cross-head dispersion $\sigma_{K}(s)$ of Method~1 retains
+whereas the cross-head dispersion $\sigma_{K}(s)$ of Method~1b retains
 structured epistemic content even after the value function converges.
-Second, Method~2's substitute for the dueling V-head,
+Second, Method~2b's substitute for the dueling V-head,
 $\bar V(s) = \max_{a} \bar Q(s, a)$, collapses to the same scalar that
 \emph{power} already conditions on through $\max_{a}\bar Q$, which
 re-introduces a coupling between \emph{anticipation} and \emph{power}
-that Method~1's separate V-head explicitly avoids. The greedy-policy
+that Method~1b's separate V-head explicitly avoids. The greedy-policy
 return drifts from $-0.80$ at frame $35{,}000$ to $-1.01$ by the end of
 training, indicating that the QR-DQN policy occasionally enters the
 $-1$ lava state in the held-out evaluation seed; this is consistent
 with QR-DQN's higher-variance value estimates under near-deterministic
 returns and is reported here without mitigation. We do not tune
-Method~2 to close the gap: the question we set out to answer is whether
+Method~2b to close the gap: the question we set out to answer is whether
 the eight-dimensional appraisal vector can be carried by an alternative
 backbone, and the numbers say it can be carried but not as effectively,
 which is itself an informative finding.
@@ -1129,7 +1356,12 @@ which is the strongest direct evidence that the added capacity is
 informational rather than parametric. We also do not hide the one
 residual redundancy (a high VIF on anticipation under converged
 policies) and instead explain why it is structural rather than a
-modelling oversight. Table~\ref{tab:master} consolidates the headline
+modelling oversight. Two preliminary configurations
+(Sections~\ref{sec:method1a} and~\ref{sec:method2a}) are documented
+alongside the headline result with the empirical reasons that
+motivated their replacement, so the design trajectory is auditable
+end-to-end rather than only at its conclusion. Table~\ref{tab:master}
+consolidates the headline
 classification fit across the experimental conditions in the same
 per-experiment format used by Table~V of~\cite{zhang2023modeling}, so
 the gains in $R^{2}$ and RMSE can be read off side-by-side with the
@@ -1143,17 +1375,22 @@ original work.
 \caption{Master conclusion table. Headline classification fit for the
 three experimental conditions on the $7\times 7$ key-and-lava grid
 world (60{,}000 frames, identical seed). Exp~1 and Exp~2 share the
-Dueling Double DQN backbone of Method~1; Exp~3 swaps in the QR-DQN
-backbone of Method~2 (Section~\ref{sec:method2}). Reported in the style
-of Table~V of~\cite{zhang2023modeling}.}
+Dueling Double DQN backbone of Method~1b; Exp~3 swaps in the QR-DQN
+backbone of Method~2b (Section~\ref{sec:method2b}). Reported in the style
+of Table~V of~\cite{zhang2023modeling}. The two preliminary
+configurations Method~1a (Section~\ref{sec:method1a}) and Method~2a
+(Section~\ref{sec:method2a}) are not included in this table because
+they were evaluated on the Scherer-style 7-emotion / 4-emotion
+protocol rather than the task-event proxies used here; their numbers
+are reported inline in their respective methodology subsections.}
 \label{tab:master}
 \begin{tabular}{llccccc}
 \toprule
 Exp.\ & Config.\ & Backbone & Dim. & Acc. & $R^{2}$ & RMSE \\
 \midrule
-Exp 1 & Baseline-4D & Method~1 & 4 & 0.648          & 0.366          & 0.345 \\
-Exp 2 & Extended-8D & Method~1 & 8 & \textbf{0.903} & \textbf{0.757} & \textbf{0.214} \\
-Exp 3 & Extended-8D & Method~2 & 8 & 0.868          & 0.694          & 0.239 \\
+Exp 1 & Baseline-4D & Method~1b & 4 & 0.648          & 0.366          & 0.345 \\
+Exp 2 & Extended-8D & Method~1b & 8 & \textbf{0.903} & \textbf{0.757} & \textbf{0.214} \\
+Exp 3 & Extended-8D & Method~2b & 8 & 0.868          & 0.694          & 0.239 \\
 \bottomrule
 \end{tabular}
 \end{table}
